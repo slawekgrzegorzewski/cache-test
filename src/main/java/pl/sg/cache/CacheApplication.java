@@ -16,8 +16,9 @@ public class CacheApplication {
 
     @Bean
     public static CacheRequestHandler getCacheEntryProcessor(CacheEntryRepository cacheEntryRepository) {
-        return new InMemoryCache(
-                new DBCache(cacheEntryRepository)
-        );
+        return new CacheRequestHandler(
+                new InMemoryCache(
+                        new DBCache(cacheEntryRepository)
+                ));
     }
 }
