@@ -1,0 +1,34 @@
+openapi: "3.0.2"
+info:
+  title: Cache API
+  version: "1.0"
+servers:
+  - url: http://localhost:80
+paths:
+  /cache/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: Returns a cache value for key
+        404:
+          description: Can't find cache entry for key
+    post:
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+        description: Value to be set in cache under key
+      responses:
+        200:
+          description: Cache entry updated/created
