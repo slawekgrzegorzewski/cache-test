@@ -32,3 +32,8 @@ paths:
       responses:
         200:
           description: Cache entry updated/created
+    delete:
+      description: Removes value from key, ignores if not exists
+      responses:
+        200:
+          description: Cache entry removed

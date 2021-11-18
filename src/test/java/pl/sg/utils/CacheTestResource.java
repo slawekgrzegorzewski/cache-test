@@ -1,18 +1,21 @@
-package pl.sg.cache;
+package pl.sg.utils;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.sg.cache.service.CacheRequestHandler;
+import pl.sg.cache.Cache;
 
-@RequestMapping(path = "/cache/", produces = MediaType.TEXT_PLAIN_VALUE)
+@RequestMapping(path = "/cache-test/", produces = MediaType.TEXT_PLAIN_VALUE)
 @RestController
-public class CacheResource {
+@Profile("test")
+public class CacheTestResource {
 
-    private final CacheRequestHandler cache;
+    private final Cache cache;
 
-    public CacheResource(CacheRequestHandler cache) {
+    public CacheTestResource(@Qualifier("inMemory") Cache cache) {
         this.cache = cache;
     }
 
@@ -25,8 +28,13 @@ public class CacheResource {
 
     @PostMapping(path = "/{key}")
     public ResponseEntity setValue(@PathVariable String key, @RequestBody String value) {
-        //TODO validate user input?
         cache.setValue(key, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/{key}")
+    public ResponseEntity removeValue(@PathVariable String key) {
+        cache.removeValue(key);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -1,4 +1,4 @@
-package pl.sg.cache;
+package pl.sg.db;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -6,6 +6,7 @@ import java.util.Objects;
 
 @Entity
 public class CacheEntry {
+
     @Id
     String key;
     String value;

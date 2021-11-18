@@ -1,4 +1,4 @@
-package pl.sg.cache;
+package pl.sg.db;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
