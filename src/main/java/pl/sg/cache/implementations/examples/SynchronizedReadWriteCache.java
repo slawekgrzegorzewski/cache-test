@@ -24,31 +24,32 @@ public class SynchronizedReadWriteCache extends CacheChain {
 
     @Override
     public Optional<String> getValue(@NonNull String key) {
-        return runWithWriteLock(() -> super.getValue(key));
-    }
 
-    @Override
-    public void setValue(@NonNull String key, @NonNull String value) {
-        Lock writeLock = lock.writeLock();
+        Lock readLock = lock.readLock();
         try {
-            writeLock.lock();
-            super.setValue(key, value);
+            readLock.lock();
+            return super.getValue(key);
         } finally {
-            writeLock.unlock();
+            readLock.unlock();
         }
     }
 
     @Override
-    public void removeValue(@NonNull String key) {
-        invokeWithWriteLock(() -> super.removeValue(key));
+    public void setValue(@NonNull String key, @NonNull String value) {
+        runWithWriteLock(() -> super.setValue(key, value));
+    }
+
+    @Override
+    public RemovalStatus removeValue(@NonNull String key) {
+        return invokeWithWriteLock(() -> super.removeValue(key));
     }
 
     @Override
     public void reset() {
-        invokeWithWriteLock(super::reset);
+        runWithWriteLock(super::reset);
     }
 
-    private <T> T runWithWriteLock(Supplier<T> method) {
+    private <T> T invokeWithWriteLock(Supplier<T> method) {
         Lock writeLock = lock.writeLock();
         try {
             writeLock.lock();
@@ -58,8 +59,8 @@ public class SynchronizedReadWriteCache extends CacheChain {
         }
     }
 
-    private void invokeWithWriteLock(Runnable method) {
-        this.runWithWriteLock(() -> {
+    private void runWithWriteLock(Runnable method) {
+        invokeWithWriteLock(() -> {
             method.run();
             return null;
         });

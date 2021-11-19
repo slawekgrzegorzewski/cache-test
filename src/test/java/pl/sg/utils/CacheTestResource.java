@@ -26,15 +26,15 @@ public class CacheTestResource {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PostMapping(path = "/{key}")
-    public ResponseEntity setValue(@PathVariable String key, @RequestBody String value) {
+    @PutMapping(path = "/{key}")
+    public ResponseEntity<Void> setValue(@PathVariable String key, @RequestBody String value) {
         cache.setValue(key, value);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @DeleteMapping(path = "/{key}")
-    public ResponseEntity removeValue(@PathVariable String key) {
-        cache.removeValue(key);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Void> removeValue(@PathVariable String key) {
+        Cache.RemovalStatus removalStatus = cache.removeValue(key);
+        return new ResponseEntity<>(removalStatus == Cache.RemovalStatus.REMOVED ? HttpStatus.NO_CONTENT : HttpStatus.NOT_FOUND);
     }
 }

@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.inOrder;
 
-class CacheChainTest {
+class CacheChainImplementationsTest {
 
     private final static String key = "a";
     private final static String initialValue = "1";

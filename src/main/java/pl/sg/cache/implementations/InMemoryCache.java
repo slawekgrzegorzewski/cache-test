@@ -38,9 +38,9 @@ public class InMemoryCache extends CacheChain {
     }
 
     @Override
-    public void removeValue(@NonNull String key) {
+    public RemovalStatus removeValue(@NonNull String key) {
         super.removeValue(key);
-        this.inMemoryCache.remove(key);
+        return this.inMemoryCache.remove(key) == null ? RemovalStatus.NOT_FOUND : RemovalStatus.REMOVED;
     }
 
     @Override

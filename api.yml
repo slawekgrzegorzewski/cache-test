@@ -22,7 +22,7 @@ paths:
           description: Returns a cache value for key
         404:
           description: Can't find cache entry for key
-    post:
+    put:
       requestBody:
         content:
           text/plain:
@@ -30,10 +30,12 @@ paths:
               type: string
         description: Value to be set in cache under key
       responses:
-        200:
+        204:
           description: Cache entry updated/created
     delete:
       description: Removes value from key, ignores if not exists
       responses:
-        200:
+        204:
           description: Cache entry removed
+        404:
+          description: Cache entry to delete not found

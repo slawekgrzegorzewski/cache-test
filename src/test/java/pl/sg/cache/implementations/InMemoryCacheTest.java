@@ -1,16 +1,14 @@
 package pl.sg.cache.implementations;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import pl.sg.cache.Cache;
+import pl.sg.utils.BasicCacheEntryFetcher;
 import pl.sg.utils.DelayedSetCache;
-import pl.sg.utils.ImmutableSetCache;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.inOrder;
 
 class InMemoryCacheTest {
 
@@ -21,7 +19,8 @@ class InMemoryCacheTest {
     @Test
     public void getsValueFromFallbackWhenValueNotPresent() {
         //given
-        Cache cache = new InMemoryCache(new ImmutableSetCache(Map.of(key, initialValue)));
+        BasicCacheEntryFetcher cacheEntryFetcher = new BasicCacheEntryFetcher(initialValue);
+        Cache cache = new InMemoryCache(new CacheFallback(cacheEntryFetcher));
 
         //when
         String valueFromCache = cache.getValue(key).orElseThrow();
@@ -33,7 +32,8 @@ class InMemoryCacheTest {
     @Test
     public void dontGetValueFromFallbackWhenValuePresent() {
         //given;
-        Cache cache = new InMemoryCache(new ImmutableSetCache(Map.of(key, initialValue)));
+        BasicCacheEntryFetcher cacheEntryFetcher = new BasicCacheEntryFetcher(initialValue);
+        Cache cache = new InMemoryCache(new CacheFallback(cacheEntryFetcher));
         cache.setValue(key, newValue);
 
         //when
@@ -57,5 +57,27 @@ class InMemoryCacheTest {
         //then
         //at this moment value read from a cache should not be changed by set call
         assertEquals(initialValue, valueFromCache);
+    }
+
+    @Test
+    public void throwsNullPointerExceptionWhenCallingAnyMethodWithNullArguments() throws InterruptedException {
+
+        //given
+        Cache cache = new InMemoryCache(new DelayedSetCache(Map.of(key, initialValue)));
+
+        //when
+        //then
+        Assertions.assertThrows(NullPointerException.class, ()->{
+            cache.getValue(null);
+        });
+        Assertions.assertThrows(NullPointerException.class, ()->{
+            cache.setValue(null, "");
+        });
+        Assertions.assertThrows(NullPointerException.class, ()->{
+            cache.setValue("", null);
+        });
+        Assertions.assertThrows(NullPointerException.class, ()->{
+            cache.removeValue(null);
+        });
     }
 }

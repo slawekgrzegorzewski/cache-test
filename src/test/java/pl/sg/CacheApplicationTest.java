@@ -5,9 +5,9 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,8 +53,8 @@ class CacheApplicationTest {
                 .filter(new ResponseLoggingFilter());
     }
 
-    @AfterEach
-    public void restoreOriginalState() {
+    @BeforeEach
+    public void setInitialState() {
         cacheEntryRepository.deleteAll();
         cacheEntryRepository.save(new CacheEntry(key, initialValue));
         cache.reset();
@@ -62,66 +62,65 @@ class CacheApplicationTest {
 
     @Test
     public void shouldReturnValue() {
-        String response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(initialValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, initialValue);
     }
 
     @Test
     public void shouldNotHitDatabaseIfValueExistsInMemory() {
 
         //get value in order to fetch it from db
-        String response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(initialValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, initialValue);
 
         //change value in db
         cacheEntryRepository.save(new CacheEntry(key, newValue));
 
         //get the same key and make sure it didn't change, what means cache hasn't polled value from DB
-        response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(initialValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, initialValue);
 
         //when value is not present it will be read from db again
         cache.removeValue(key);
-        response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(newValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, newValue);
 
     }
 
     @Test
     public void shouldAcceptValue() {
-        updateValueUsingCacheApi(initialValue);
+        updateValueUsingCacheApi(initialValue, cacheEndpointSpecification);
     }
 
     @Test
     public void allEndpointUsingTheSameCacheShouldBeSynchronized() {
 
-        String response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(initialValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, initialValue);
 
-        updateValueUsingCacheApi(newValue);
+        readFromApiAndAssertEquals(testCacheEndpointSpecification, initialValue);
 
-        response = readFromCacheApi(testCacheEndpointSpecification);
-        Assertions.assertEquals(newValue, response);
+        updateValueUsingCacheApi(newValue, cacheEndpointSpecification);
 
+        readFromApiAndAssertEquals(cacheEndpointSpecification, newValue);
+
+        readFromApiAndAssertEquals(testCacheEndpointSpecification, newValue);
     }
 
     @Test
     public void removingValueShouldNotDeleteItFromDB() {
 
-        String response = readFromCacheApi(cacheEndpointSpecification);
-        Assertions.assertEquals(initialValue, response);
+        readFromApiAndAssertEquals(cacheEndpointSpecification, initialValue);
 
-        removeFromCacheApi(key);
+        removeFromCacheApi(key, cacheEndpointSpecification, 204);
 
-        cacheEntryRepository.save(new CacheEntry(key, newValue));
-        response = readFromCacheApi(testCacheEndpointSpecification);
-        Assertions.assertEquals(newValue, response);
         Assertions.assertTrue(cacheEntryRepository.findById(key).isPresent());
     }
 
     @Test
     public void removingNotExistingKeyShouldReturnOK() {
-        removeFromCacheApi("not existing key");
+        removeFromCacheApi("not existing key", cacheEndpointSpecification, 404);
+    }
+
+
+    private void readFromApiAndAssertEquals(RequestSpecification endpointSpecification, String expectedValue) {
+        String response = readFromCacheApi(endpointSpecification);
+        Assertions.assertEquals(expectedValue, response);
     }
 
     private String readFromCacheApi(RequestSpecification endpointSpecification) {
@@ -131,16 +130,16 @@ class CacheApplicationTest {
                 .extract().body().asString();
     }
 
-    private void updateValueUsingCacheApi(String value) {
-        given().spec(cacheEndpointSpecification).body(value)
-                .when().post(key)
-                .then().statusCode(200);
+    private void updateValueUsingCacheApi(String value, RequestSpecification endpointSpecification) {
+        given().spec(endpointSpecification).body(value)
+                .when().put(key)
+                .then().statusCode(204);
     }
 
-    private void removeFromCacheApi(String key) {
-        given().spec(cacheEndpointSpecification)
+    private void removeFromCacheApi(String key, RequestSpecification endpointSpecification, int expectedStatusCode) {
+        given().spec(endpointSpecification)
                 .when().delete(key)
-                .then().statusCode(200);
+                .then().statusCode(expectedStatusCode);
     }
 
 }

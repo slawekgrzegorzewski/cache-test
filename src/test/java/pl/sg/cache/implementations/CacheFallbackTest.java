@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.sg.cache.Cache;
 import pl.sg.cache.CacheEntryFetcher;
+import pl.sg.utils.BasicCacheEntryFetcher;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CacheFallbackTest {
 
@@ -11,17 +16,20 @@ class CacheFallbackTest {
     private final static String value = "value";
 
     @Test
-    public void mustNotInteractWithValueFetcherWhenSettingValue() {
+    public void doesNotCacheValueFromFetcher() {
 
         //given
-        CacheEntryFetcher cacheEntryFetcher = Mockito.mock(CacheEntryFetcher.class);
+        String firstValue = "A";
+        String secondValue = "B";
+        BasicCacheEntryFetcher cacheEntryFetcher = new BasicCacheEntryFetcher(firstValue);
         Cache cache = new CacheFallback(cacheEntryFetcher);
+        assertEquals(firstValue, cache.getValue(key).orElseThrow());
 
         //when
-        cache.setValue(key, value);
+        cacheEntryFetcher.setValue(secondValue);
+        String secondGetResult = cache.getValue(key).orElseThrow();
 
         //then
-        Mockito.verifyNoInteractions(cacheEntryFetcher);
+        assertEquals(secondValue, secondGetResult);
     }
-
 }

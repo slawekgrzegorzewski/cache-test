@@ -25,8 +25,8 @@ public abstract class CacheChain implements Cache {
     }
 
     @Override
-    public void removeValue(@NonNull String key) {
-        Optional.ofNullable(nextHandler).ifPresent(nh -> nh.removeValue(key));
+    public RemovalStatus removeValue(@NonNull String key) {
+        return Optional.ofNullable(nextHandler).map(nh -> nh.removeValue(key)).orElse(RemovalStatus.NOT_FOUND);
     }
 
     @Override

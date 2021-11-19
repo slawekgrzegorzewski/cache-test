@@ -31,6 +31,7 @@ class CappedInMemoryCacheTest {
         cache.setValue(thirdKey, thirdValue);
 
         //then
+        //capacity of the cache is two so first element should no longer exist on cache
         assertTrue(cache.getValue(firstKey).isEmpty());
         assertEquals(secondValue, cache.getValue(secondKey).orElseThrow());
         assertEquals(thirdValue, cache.getValue(thirdKey).orElseThrow());
