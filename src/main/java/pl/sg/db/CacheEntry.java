@@ -1,14 +1,19 @@
 package pl.sg.db;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
 import java.util.Objects;
 
 @Entity
 public class CacheEntry {
 
     @Id
+    @Column(name = "entry_key")
     String key;
+    @Column(name = "entry_value")
     String value;
 
     public CacheEntry() {
