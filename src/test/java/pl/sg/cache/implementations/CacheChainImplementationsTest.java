@@ -4,11 +4,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import pl.sg.cache.Cache;
-import pl.sg.cache.CacheEntryFetcher;
 import pl.sg.cache.implementations.examples.CappedInMemoryCache;
 import pl.sg.cache.implementations.examples.SynchronizedReadWriteCache;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -20,7 +18,7 @@ class CacheChainImplementationsTest {
     private final static String initialValue = "1";
 
     @ParameterizedTest
-    @MethodSource("cacheProvidersForGetRequestNotExistingValue")
+    @MethodSource("cacheProviders")
     public void shouldForwardGetRequestIfValueNotPresent(Function<Cache, Cache> testCacheProvider) {
 
         //given
@@ -34,12 +32,8 @@ class CacheChainImplementationsTest {
         inOrder(nextCacheInChain).verify(nextCacheInChain, Mockito.calls(1)).getValue(key);
     }
 
-    static Stream<Function<Cache, Cache>> cacheProvidersForGetRequestNotExistingValue() {
-        return cacheProvidersForGetRequest(noValue());
-    }
-
     @ParameterizedTest
-    @MethodSource("cacheProvidersForGetRequestAndExistingValue")
+    @MethodSource("cacheProviders")
     public void shouldNotForwardGetRequestIfValuePresent(Function<Cache, Cache> testCacheProvider) {
         //given
         Cache nextCacheInChain = Mockito.mock(Cache.class);
@@ -53,12 +47,8 @@ class CacheChainImplementationsTest {
         inOrder(nextCacheInChain).verify(nextCacheInChain, Mockito.never()).getValue(key);
     }
 
-    static Stream<Function<Cache, Cache>> cacheProvidersForGetRequestAndExistingValue() {
-        return cacheProvidersForGetRequest(withValue());
-    }
-
     @ParameterizedTest
-    @MethodSource("cacheProvidersForOtherRequests")
+    @MethodSource("cacheProviders")
     public void shouldAlwaysForwardSetRequest(Function<Cache, Cache> testCacheProvider) {
         //given
         Cache nextCacheInChain = Mockito.mock(Cache.class);
@@ -72,7 +62,7 @@ class CacheChainImplementationsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("cacheProvidersForOtherRequests")
+    @MethodSource("cacheProviders")
     public void shouldAlwaysForwardResetRequests(Function<Cache, Cache> testCacheProvider) {
         //given
         Cache nextCacheInChain = Mockito.mock(Cache.class);
@@ -86,7 +76,7 @@ class CacheChainImplementationsTest {
     }
 
     @ParameterizedTest
-    @MethodSource("cacheProvidersForOtherRequests")
+    @MethodSource("cacheProviders")
     public void shouldAlwaysForwardRemoveRequests(Function<Cache, Cache> testCacheProvider) {
         //given
         Cache nextCacheInChain = Mockito.mock(Cache.class);
@@ -99,36 +89,11 @@ class CacheChainImplementationsTest {
         inOrder(nextCacheInChain).verify(nextCacheInChain, Mockito.calls(1)).removeValue(key);
     }
 
-    static Stream<Function<Cache, Cache>> cacheProvidersForOtherRequests() {
-        return Stream.concat(cacheProvidersForOtherRequests(noValue()), cacheProvidersForOtherRequests(withValue()));
-    }
-
-    private static Stream<Function<Cache, Cache>> cacheProvidersForGetRequest(CacheEntryFetcher fetcher) {
+    static Stream<Function<Cache, Cache>> cacheProviders() {
         return Stream.of(
                 InMemoryCache::new,
-                cache -> new CacheFallback(cache, fetcher),
-                CappedInMemoryCache::new
-        );
-    }
-
-    private static Stream<Function<Cache, Cache>> cacheProvidersForOtherRequests(CacheEntryFetcher fetcher) {
-        return Stream.of(
-                InMemoryCache::new,
-                cache -> new CacheFallback(cache, fetcher),
                 CappedInMemoryCache::new,
-                SynchronizedReadWriteCache::new
+                cache -> new SynchronizedReadWriteCache(new InMemoryCache(cache))
         );
-    }
-
-    private static CacheEntryFetcher noValue() {
-        CacheEntryFetcher fetcher = Mockito.mock(CacheEntryFetcher.class);
-        Mockito.when(fetcher.fetch(key)).thenReturn(Optional.empty());
-        return fetcher;
-    }
-
-    private static CacheEntryFetcher withValue() {
-        CacheEntryFetcher fetcher = Mockito.mock(CacheEntryFetcher.class);
-        Mockito.when(fetcher.fetch(key)).thenReturn(Optional.of(initialValue));
-        return fetcher;
     }
 }

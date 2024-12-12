@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import pl.sg.cache.Cache;
@@ -18,7 +17,7 @@ import pl.sg.db.CacheEntryRepository;
 import static io.restassured.RestAssured.given;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles(value = {"test", "inMemory"})
 class IncorrectRequestsCacheApplicationTest {
 
     private final static String key = "first";
@@ -29,7 +28,6 @@ class IncorrectRequestsCacheApplicationTest {
     CacheEntryRepository cacheEntryRepository;
 
     @Autowired
-    @Qualifier("inMemory")
     Cache cache;
 
     private static RequestSpecification cacheEndpointSpecification;

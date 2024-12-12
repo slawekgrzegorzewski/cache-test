@@ -1,19 +1,25 @@
 package pl.sg.cache.implementations.examples;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import lombok.NonNull;
 import pl.sg.cache.Cache;
 import pl.sg.cache.CacheChain;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
 public class CappedInMemoryCache extends CacheChain {
-    //used because of atomicity of put operations family, but performance should be checked
-    private final ConcurrentLinkedHashMap<String, String> inMemoryCache = new ConcurrentLinkedHashMap.Builder<String, String>()
-            .maximumWeightedCapacity(2)
-            .build();
+    private static final int MAX_CAPACITY = 2;
+
+    private final HashMap<String, String> inMemoryCache = new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+            return size() > MAX_CAPACITY;
+        }
+    };
 
     public CappedInMemoryCache() {
         super(null);
@@ -25,11 +31,8 @@ public class CappedInMemoryCache extends CacheChain {
 
     @Override
     public Optional<String> getValue(@NonNull String key) {
-        String result = inMemoryCache.computeIfAbsent(
-                key,
-                lackingKey -> super.getValue(lackingKey).orElse(null)
-        );
-        return ofNullable(result);
+        return ofNullable(inMemoryCache.get(key))
+                .or(() -> super.getValue(key));
     }
 
     @Override

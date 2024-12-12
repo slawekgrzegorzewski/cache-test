@@ -1,6 +1,5 @@
 package pl.sg.api;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,7 @@ public class CacheResource {
 
     private final Cache cache;
 
-    public CacheResource(@Qualifier("inMemory") Cache cache) {
+    public CacheResource(Cache cache) {
         this.cache = cache;
     }
 

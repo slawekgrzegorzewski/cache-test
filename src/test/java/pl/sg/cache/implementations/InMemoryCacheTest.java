@@ -60,24 +60,16 @@ class InMemoryCacheTest {
     }
 
     @Test
-    public void throwsNullPointerExceptionWhenCallingAnyMethodWithNullArguments() throws InterruptedException {
+    public void throwsNullPointerExceptionWhenCallingAnyMethodWithNullArguments() {
 
         //given
         Cache cache = new InMemoryCache(new DelayedSetCache(Map.of(key, initialValue)));
 
         //when
         //then
-        Assertions.assertThrows(NullPointerException.class, ()->{
-            cache.getValue(null);
-        });
-        Assertions.assertThrows(NullPointerException.class, ()->{
-            cache.setValue(null, "");
-        });
-        Assertions.assertThrows(NullPointerException.class, ()->{
-            cache.setValue("", null);
-        });
-        Assertions.assertThrows(NullPointerException.class, ()->{
-            cache.removeValue(null);
-        });
+        Assertions.assertThrows(NullPointerException.class, ()-> cache.getValue(null));
+        Assertions.assertThrows(NullPointerException.class, ()-> cache.setValue(null, ""));
+        Assertions.assertThrows(NullPointerException.class, ()-> cache.setValue("", null));
+        Assertions.assertThrows(NullPointerException.class, ()-> cache.removeValue(null));
     }
 }

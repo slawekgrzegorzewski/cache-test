@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.Optional.ofNullable;
 
 public class InMemoryCache extends CacheChain {
-    //used because of atomicity of put operations family, but performance should be checked
     private final Map<String, String> inMemoryCache = new ConcurrentHashMap<>();
 
     public InMemoryCache() {
