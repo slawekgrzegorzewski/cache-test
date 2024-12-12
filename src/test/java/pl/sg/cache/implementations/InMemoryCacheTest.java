@@ -59,6 +59,7 @@ class InMemoryCacheTest {
         assertEquals(initialValue, valueFromCache);
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Test
     public void throwsNullPointerExceptionWhenCallingAnyMethodWithNullArguments() {
 
